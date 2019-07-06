@@ -2,11 +2,11 @@
 
 what I have to add
 
-Tests on Normality and fat-tailedness to indicate the direction of Non-Normality. Basially it is done.
+1. Tests on Normality and fat-tailedness to indicate the direction of Non-Normality. Basially it is done.
 
-Bivariate estimation of the Phillips curve.
+2. Bivariate estimation of the Phillips curve.
 
-Structural decomposition of the Bivariate Phillips curve with exclusion restrictions
+3. Structural decomposition of the Bivariate Phillips curve with exclusion restrictions
 
 #########Description###########
 
