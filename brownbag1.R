@@ -21,47 +21,47 @@ pp.test(unrate)  #reject stationarity
 pp.test(unrate,type = "Z(t_alpha)") #reject stationarity
 ####HP-filter####
 
-hpfiltered = hpfilter(x = unrate,type = "lambda",freq = 14400)
+#hpfiltered = hpfilter(x = unrate,type = "lambda",freq = 14400)
 #hpfiltered2 = hpfilter(x = unrate,type = "lambda",freq = 28800)
 
 
-ts.plot(unrate)
-lines(hpfiltered$trend, col = "red")
-lines(hpfiltered$cycle+6, col = "blue")
-abline(a=6,b = 0)
-var(hpfiltered$cycle)
+#ts.plot(unrate)
+#lines(hpfiltered$trend, col = "red")
+#lines(hpfiltered$cycle+6, col = "blue")
+#abline(a=6,b = 0)
+#var(hpfiltered$cycle)
 
 # ts.plot(unrate)
 # lines(hpfiltered2$trend, col = "red")
 # lines(hpfiltered2$cycle+6, col = "blue")
 # abline(a=6,b = 0)
 # var(hpfiltered2$cycle)
-adf.test(hpfiltered$cycle)
+#adf.test(hpfiltered$cycle)
 
 ###Baxter-King filter####
 
-bkfiltered1 = bkfilter(unrate,pl = 2,pu = 96,nfix = 36) 
+#bkfiltered1 = bkfilter(unrate,pl = 2,pu = 96,nfix = 36) 
 #filter out the irregular component and the business cycle component
 
 bkfiltered2 = bkfilter(unrate,pl = 18,pu = 96,nfix = 36) 
 #filter out the business cycle of 1.5-8 years
 
-bkfiltered11 = bkfilter(unrate,pl = 2,pu = 96,nfix = 24) 
+#bkfiltered11 = bkfilter(unrate,pl = 2,pu = 96,nfix = 24) 
 #filter out the business cycle of 1.5-8 years
 
 bkfiltered12 = bkfilter(unrate,pl = 18,pu = 96,nfix = 24) 
 #filter out the business cycle of 1.5-8 years
 
 
-ts.plot(bkfiltered1$cycle, col = "red")
-lines(bkfiltered11$cycle, col = "blue")
+#ts.plot(bkfiltered1$cycle, col = "red")
+#lines(bkfiltered12$cycle, col = "blue")
 #lines(bkfiltered$cycle, col = "green4")
-abline(0,0)
+#abline(0,0)
 
-ts.plot(bkfiltered2$cycle, col = "red")
-lines(bkfiltered12$cycle, col = "blue")
+#ts.plot(bkfiltered2$cycle, col = "red")
+#lines(bkfiltered12$cycle, col = "blue")
 #lines(bkfiltered$cycle, col = "green4")
-abline(0,0)
+#abline(0,0)
 
 ts.plot(bkfiltered2$trend, col = "red")
 lines(bkfiltered12$trend, col = "blue")
@@ -69,6 +69,8 @@ lines(bkfiltered12$trend, col = "blue")
 abline(0,0)
 
 ###Filtration is done###
+
+
 ####Step 2. Data splitting and lag selection####
 unrate.ts = ts(data = unrate,start = c(1953,1),end = c(2019,5),frequency = 12)
 
@@ -79,45 +81,43 @@ cpi.gr = ts(data = cpi[-1]/cpi[-length(cpi)],start = c(1952,1),end = c(2019,4),f
 cpi.grate = window(x = cpi.gr,start = c(1953,1),end = c(2019,4))
 
 unratecycle.ts = ts(data = bkfiltered12$cycle,start = c(1953,1),end = c(2019,5),frequency = 12)
-unratecycle2.ts = ts(data = bkfiltered11$cycle,start = c(1953,1),end = c(2019,5),frequency = 12)
+#unratecycle2.ts = ts(data = bkfiltered11$cycle,start = c(1953,1),end = c(2019,5),frequency = 12)
 
 cpi1.ts = cpi.ts[!is.na(unratecycle.ts[-length(unratecycle.ts)])]
-cpi1.gr = cpi.grate[!is.na(unratecycle.ts[-length(unratecycle.ts)])]
+#cpi1.gr = cpi.grate[!is.na(unratecycle.ts[-length(unratecycle.ts)])]
 
 unratecycle.ts = unratecycle.ts[!is.na(unratecycle.ts)]
-unratecycle2.ts = unratecycle2.ts[!is.na(unratecycle2.ts)]
+#unratecycle2.ts = unratecycle2.ts[!is.na(unratecycle2.ts)]
 
-ts.plot(cpi.ts*100)
-lines(unratecycle.ts, col = "red")
-lines(unratecycle2.ts, col = "blue")
+#ts.plot(cpi.ts*100)
+#lines(unratecycle.ts, col = "red")
+#lines(unratecycle2.ts, col = "blue")
 
 
 unratecycle.ts = ts(data = unratecycle.ts,start = c(1955,1),end = c(2017,5),frequency = 12)
-unratecycle2.ts = ts(data = unratecycle2.ts,start = c(1955,1),end = c(2017,5),frequency = 12)
+#unratecycle2.ts = ts(data = unratecycle2.ts,start = c(1955,1),end = c(2017,5),frequency = 12)
 
 cpi2.ts = ts(data = cpi1.ts,start = c(1955,1),end = c(2017,5),frequency = 12)
-cpi2.gr = ts(data = cpi1.gr,start = c(1955,1),end = c(2017,5),frequency = 12)
+#cpi2.gr = ts(data = cpi1.gr,start = c(1955,1),end = c(2017,5),frequency = 12)
 
 
 ###Divide the data into three major periods
 ##Great Inflation: 1960 - 1983
 GGI = list()
-GGI$cpi = window(x = cpi2.ts, start = c(1960,1), end = c(1982,12))
-GGI$cpi2= window(x = cpi2.ts, start = c(1965,1), end = c(1982,12))
-GGI$cpi = GGI$cpi2
+GGI$cpi = window(x = cpi2.ts, start = c(1965,1), end = c(1982,12))
+#GGI$cpi= window(x = cpi2.ts, start = c(1965,1), end = c(1982,12))
+#GGI$cpi = GGI$cpi2
 
+#GGI$unrate1 = window(x = unratecycle.ts, start = c(1960,1), end = c(1982,12))
+GGI$unrate = window(x = unratecycle.ts, start = c(1965,1), end = c(1982,12))
 
-GGI$unrate1 = window(x = unratecycle.ts, start = c(1960,1), end = c(1982,12))
-GGI$unrate3 = window(x = unratecycle.ts, start = c(1965,1), end = c(1982,12))
-
-GGI$unrate = GGI$unrate3
+#GGI$unrate = GGI$unrate3
 GGI$n = length(GGI$cpi)
 GGI$stdcpi = (GGI$cpi - mean(GGI$cpi))/sqrt(var(GGI$cpi))
 
 
 #check = modelfit2(GGI$cpi,l = 20)
-GGI$lagselect = modelfit2(GGI$cpi,l = 20,
-                         exo = GGI$unrate)
+GGI$lagselect = modelfit2(GGI$cpi,l = 20,exo = GGI$unrate)
 
 GGI$unitroot0 = summary(ur.df(GGI$cpi,type = "none"))
 GGI$unitrootD = summary(ur.df(GGI$cpi,type = "drift"))
@@ -135,17 +135,16 @@ ts.plot(GGI$ACtest1$JBp.value)
 ##Great Moderation: 1985 - 2007
 GGM = list()
 GGM$cpi = window(x = cpi2.ts, start = c(1983,1), end = c(2006,12))
-GGM$unrate1 = window(x = unratecycle.ts, start = c(1983,1), end = c(2006,12))
-GGM$unrate2 = window(x = unratecycle2.ts, start = c(1983,1), end = c(2006,12))
+GGM$unrate = window(x = unratecycle.ts, start = c(1983,1), end = c(2006,12))
+#GGM$unrate2 = window(x = unratecycle2.ts, start = c(1983,1), end = c(2006,12))
 GGM$n = length(GGM$cpi)
 GGM$stdcpi = (GGM$cpi - mean(GGM$cpi))/sqrt(var(GGM$cpi))
 
+GGM$lagselect = modelfit2(GGM$cpi,l = 20,exo = GGM$unrate)
+#GGM$lagselect2 = modelfit2(GGM$cpi,l = 20,exo = GGM$unrate2)
 
-GGM$lagselect = modelfit2(GGM$cpi,l = 20,exo = GGM$unrate1)
-GGM$lagselect2 = modelfit2(GGM$cpi,l = 20,exo = GGM$unrate2)
-
-GGM$ACtest1 = diagnostics(cpi = GGM$cpi, unrate = GGM$unrate1,range = 20,order = 30)
-GGM$ACtest2 = diagnostics(cpi = GGM$cpi, unrate = GGM$unrate1,range = 20,order = 10)
+GGM$ACtest1 = diagnostics(cpi = GGM$cpi, unrate = GGM$unrate,range = 20,order = 30)
+GGM$ACtest2 = diagnostics(cpi = GGM$cpi, unrate = GGM$unrate,range = 20,order = 10)
 
 GGM$unitroot0 = summary(ur.df(GGM$cpi,type = "none"))
 GGM$unitrootD = summary(ur.df(GGM$cpi,type = "drift"))
@@ -157,18 +156,18 @@ GGM$unitrootT = summary(ur.df(GGM$cpi,type = "trend"))
 GGR = list()
 GGR$cpi = window(x = cpi2.ts, start = c(2007,1), end = c(2017,5))
 
-GGR$unrate1 = window(x = unratecycle.ts, start = c(2007,1), end = c(2017,5))
-GGR$unrate2 = window(x = unratecycle2.ts, start = c(2007,1), end = c(2017,5))
+GGR$unrate = window(x = unratecycle.ts, start = c(2007,1), end = c(2017,5))
+#GGR$unrate2 = window(x = unratecycle2.ts, start = c(2007,1), end = c(2017,5))
 
 GGR$n = length(GGR$cpi)
 
 GGR$stdcpi = (GGR$cpi - mean(GGR$cpi))/sqrt(var(GGR$cpi))
 
-GGR$lagselect = modelfit2(GGR$cpi,l = 20,exo = GGR$unrate1)
-GGR$lagselect2 = modelfit2(GGR$cpi,l = 20,exo = GGR$unrate2)
+GGR$lagselect = modelfit2(GGR$cpi,l = 20,exo = GGR$unrate)
+#GGR$lagselect2 = modelfit2(GGR$cpi,l = 20,exo = GGR$unrate2)
 
-GGR$ACtest1 = diagnostics(cpi = GGR$cpi, unrate = GGR$unrate1,range = 20,order = 30)
-GGR$ACtest2 = diagnostics(cpi = GGR$cpi, unrate = GGR$unrate1,range = 20,order = 10)
+GGR$ACtest1 = diagnostics(cpi = GGR$cpi, unrate = GGR$unrate,range = 20,order = 30)
+GGR$ACtest2 = diagnostics(cpi = GGR$cpi, unrate = GGR$unrate,range = 20,order = 10)
 
 GGR$unitroot0 = summary(ur.df(GGR$cpi,type = "none"))
 GGR$unitrootD = summary(ur.df(GGR$cpi,type = "drift"))
@@ -177,7 +176,7 @@ GGR$unitrootT = summary(ur.df(GGR$cpi,type = "trend"))
 ####Tables####
 library(e1071)  
 tables = list()
-
+#Summary statistics table 
 tables$sumstat = matrix(0,10,3)
 tables$sumstat[,1] = c(mean(GGI$cpi),median(GGI$cpi),var(GGI$cpi),skewness(GGI$cpi),
                        kurtosis(GGI$cpi),min(GGI$cpi),max(GGI$cpi),
@@ -194,7 +193,7 @@ tables$sumstat[,3] = c(mean(GGR$cpi),median(GGR$cpi),var(GGR$cpi),skewness(GGR$c
 rownames(tables$sumstat) = c("Mean","Median","Variance","Skewness","Kurtosis",
                              "Min", "Max", "ADF test (origin)", 
                              "ADF test (const)","ADF test (const+trend)")
-
+#Diagnostics test table
 tables$tests = matrix(0,18,21)
 tables$tests[1:6,] = rbind(GGI$ACtest1$LBtest,GGI$ACtest1$LBp.value,
                      GGI$ACtest1$BGtest,GGI$ACtest1$BGp.value,
@@ -211,6 +210,7 @@ tables$testrownames = c("Ljung-Box, ord=30", "L-B p.value",
 rownames(tables$tests) = rep(tables$testrownames,3)
 colnames(tables$tests) = c(1:21)
 
+#diagnostics tests table for order 10
 tables$tests2 = matrix(0,18,21)
 tables$tests2[1:6,] = rbind(GGI$ACtest2$LBtest,GGI$ACtest2$LBp.value,
                            GGI$ACtest2$BGtest,GGI$ACtest2$BGp.value,
@@ -227,7 +227,7 @@ tables$testrownames = c("Ljung-Box, ord=10", "L-B p.value",
 rownames(tables$tests2) = rep(tables$testrownames,3)
 colnames(tables$tests2) = c(1:21)
 
-
+#AICBIC table
 tables$aicbic = matrix(0,6,20)
 tables$aicbic[1:2,] = rbind(GGI$lagselect$aic,GGI$lagselect$bic)
 tables$aicbic[3:4,] = rbind(GGM$lagselect$aic,GGM$lagselect$bic)
@@ -301,6 +301,7 @@ resetstat = ((sum(uhat^2) - sum(vhat^2))/2)/(sum(vhat^2)/(length(uhat)-dim(regs)
 
 
 #check = diagnostics(cpi = GGI$cpi, unrate = GGI$unrate1,range = 2,order = 30)
+
 
 ####Step 3. Analysis of the noncausal setings####
 ###Follow Lanne, Saikonen lag order selection
@@ -407,14 +408,14 @@ GGM$lags = sapply(1:nlag, function(x) c(rep(NA, length.out = x),
 GGM$AIC = c()
 
 for(i in 1:nlag){
-  exo = GGM$unrate1[-c(1:i)]
+  exo = GGM$unrate[-c(1:i)]
   auxm = lm(GGM$cpi[-c(1:i)]~1+GGM$lags[-c(1:i),1:i]+exo)
   GGM$AIC[i] = AIC(auxm)}
 
 
-GGM$MAR$model11 = mixed(y = GGM$cpi,x = GGM$unrate1,p_C = 2,p_NC = 0)
-GGM$MAR$model12 = mixed(y = GGM$cpi,x = GGM$unrate1,p_C = 1,p_NC = 1)
-GGM$MAR$model13 = mixed(y = GGM$cpi,x = GGM$unrate1,p_C = 0,p_NC = 2)
+GGM$MAR$model11 = mixed(y = GGM$cpi,x = GGM$unrate,p_C = 2,p_NC = 0)
+GGM$MAR$model12 = mixed(y = GGM$cpi,x = GGM$unrate,p_C = 1,p_NC = 1)
+GGM$MAR$model13 = mixed(y = GGM$cpi,x = GGM$unrate,p_C = 0,p_NC = 2)
 
 GGM$MAR$table = matrix(0,6,8)
 GGM$MAR$table[1,]= c(GGM$MAR$model11$coefficients[c(1,2,3,4,4,5,6,7)])
@@ -426,17 +427,17 @@ GGM$MAR$table[6,]= c(GGM$MAR$model13$se[c(1,2,2,3,4,5,6,7)])
 rownames(GGM$MAR$table) = c("AR(2,0)","s.e.", "MAR(1,1)","s.e.", "AR(0,2)","s.e.")
 colnames(GGM$MAR$table) = c("int", "lag1", "lag2", "lead1", "lead2", "exo", "df", "scale" )
 
-GGM$MAR$select = selection.lag.lead(GGM$cpi,x = GGM$unrate1,p_pseudo = 2)
-selection.lag.lead(GGM$cpi,x = GGM$unrate1,p_pseudo = 12)
+GGM$MAR$select = selection.lag.lead(GGM$cpi,x = GGM$unrate,p_pseudo = 2)
+selection.lag.lead(GGM$cpi,x = GGM$unrate,p_pseudo = 12)
 
-GGM$MAR$select5 = selection.lag.lead(GGM$cpi,x = GGM$unrate1,p_pseudo = 5)
+GGM$MAR$select5 = selection.lag.lead(GGM$cpi,x = GGM$unrate,p_pseudo = 5)
 
-GGM$MAR$model50 = mixed(y = GGM$cpi,x = GGM$unrate1,p_C = 5,p_NC = 0)
-GGM$MAR$model41 = mixed(y = GGM$cpi,x = GGM$unrate1,p_C = 4,p_NC = 1)
-GGM$MAR$model32 = mixed(y = GGM$cpi,x = GGM$unrate1,p_C = 3,p_NC = 2)
-GGM$MAR$model23 = mixed(y = GGM$cpi,x = GGM$unrate1,p_C = 2,p_NC = 3)
-GGM$MAR$model14 = mixed(y = GGM$cpi,x = GGM$unrate1,p_C = 1,p_NC = 4)
-GGM$MAR$model05 = mixed(y = GGM$cpi,x = GGM$unrate1,p_C = 0,p_NC = 5)
+GGM$MAR$model50 = mixed(y = GGM$cpi,x = GGM$unrate,p_C = 5,p_NC = 0)
+GGM$MAR$model41 = mixed(y = GGM$cpi,x = GGM$unrate,p_C = 4,p_NC = 1)
+GGM$MAR$model32 = mixed(y = GGM$cpi,x = GGM$unrate,p_C = 3,p_NC = 2)
+GGM$MAR$model23 = mixed(y = GGM$cpi,x = GGM$unrate,p_C = 2,p_NC = 3)
+GGM$MAR$model14 = mixed(y = GGM$cpi,x = GGM$unrate,p_C = 1,p_NC = 4)
+GGM$MAR$model05 = mixed(y = GGM$cpi,x = GGM$unrate,p_C = 0,p_NC = 5)
 
 c(Box.test(GGM$MAR$model50$residuals,lag = 12,type = "Ljung-Box")$p.value,
   Box.test(GGM$MAR$model41$residuals,lag = 12,type = "Ljung-Box")$p.value,
@@ -477,12 +478,12 @@ for(i in 1:nlag){
   auxm = lm(GGR$cpi[-c(1:i)]~1+GGR$lags[-c(1:i),1:i]+exo)
   GGR$AIC[i] = AIC(auxm)}
 
-mixed(y = GGR$cpi,x = GGR$unrate1,p_C = 0,p_NC = 1)
-mixed(y = GGR$cpi,x = GGR$unrate1,p_C = 1,p_NC = 0)
+mixed(y = GGR$cpi,x = GGR$unrate,p_C = 0,p_NC = 1)
+mixed(y = GGR$cpi,x = GGR$unrate,p_C = 1,p_NC = 0)
 
-GGR$MAR$model11 = mixed(y = GGR$cpi,x = GGR$unrate1,p_C = 2,p_NC = 0)
-GGR$MAR$model12 = mixed(y = GGR$cpi,x = GGR$unrate1,p_C = 1,p_NC = 1)
-GGR$MAR$model13 = mixed(y = GGR$cpi,x = GGR$unrate1,p_C = 0,p_NC = 2)
+GGR$MAR$model11 = mixed(y = GGR$cpi,x = GGR$unrate,p_C = 2,p_NC = 0)
+GGR$MAR$model12 = mixed(y = GGR$cpi,x = GGR$unrate,p_C = 1,p_NC = 1)
+GGR$MAR$model13 = mixed(y = GGR$cpi,x = GGR$unrate,p_C = 0,p_NC = 2)
 
 GGR$MAR$table = matrix(0,6,8)
 GGR$MAR$table[1,]= c(GGR$MAR$model11$coefficients[c(1,2,3,4,4,5,6,7)])
@@ -495,7 +496,7 @@ rownames(GGR$MAR$table) = c("AR(2,0)","s.e.", "MAR(1,1)","s.e.", "AR(0,2)","s.e.
 colnames(GGR$MAR$table) = c("int", "lag1", "lag2", "lead1", "lead2", "exo", "df", "scale" )
 
 
-GGR$MAR$select = selection.lag.lead(GGR$cpi,x = GGR$unrate1,p_pseudo = 2)
+GGR$MAR$select = selection.lag.lead(GGR$cpi,x = GGR$unrate,p_pseudo = 2)
 
 GGR$MAR$table2 = matrix(0,3,2)
 GGR$MAR$table2[,1] = GGR$MAR$select$loglikelihood
@@ -506,7 +507,7 @@ GGR$MAR$table2[,2] = c(Box.test(GGR$MAR$model11$residuals,lag = 12,type = "Ljung
 
 
 
-
+#next comes the experimental setup
 
 
 p = c(0,0,0,0,0)
