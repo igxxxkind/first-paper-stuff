@@ -37,9 +37,11 @@ rmltest=function(data){
 
 
 #define the function we need to solve to obtain the shape parameter
-f<-function(x,series) {
-  (((gamma(3/x)*gamma(1/x))^0.5)/gamma(2/x)-(sd(series)/(sum(abs(series-mean(series)))/length(series))))
-}
+f = function(x,series) {
+#the expression must be equal to zero
+  exp = (((gamma(3/x)*gamma(1/x))^0.5)/gamma(2/x)-(sd(series)/(sum(abs(series-mean(series)))/length(series))))
+return(abs(exp))
+  }
 
 
 BaiTest=function(v){  
