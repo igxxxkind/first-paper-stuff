@@ -43,6 +43,12 @@ f = function(x,series) {
 return(abs(exp))
   }
 
+f2 = function(x,series) {
+  #the expression must be equal to zero
+  (((gamma(3/x)*gamma(1/x))^0.5)/gamma(2/x)-(sd(series)/(sum(abs(series-mean(series)))/length(series))))
+  }
+
+
 
 BaiTest=function(v){  
   #The function is based on the algorithm presented in the Bai(2003) 
