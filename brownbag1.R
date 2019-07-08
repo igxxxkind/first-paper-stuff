@@ -150,6 +150,8 @@ GGM$unitroot0 = summary(ur.df(GGM$cpi,type = "none"))
 GGM$unitrootD = summary(ur.df(GGM$cpi,type = "drift"))
 GGM$unitrootT = summary(ur.df(GGM$cpi,type = "trend"))
 
+GGM$causalmodel = arima(x = GGM$cpi,order = c(2,0,0),
+                        xreg = GGM$unrate,method = "CSS")
 
 
 ##Great Recession: 2007 - 2017
@@ -172,6 +174,10 @@ GGR$ACtest2 = diagnostics(cpi = GGR$cpi, unrate = GGR$unrate,range = 20,order = 
 GGR$unitroot0 = summary(ur.df(GGR$cpi,type = "none"))
 GGR$unitrootD = summary(ur.df(GGR$cpi,type = "drift"))
 GGR$unitrootT = summary(ur.df(GGR$cpi,type = "trend"))
+
+GGR$causalmodel = arima(x = GGR$cpi,order = c(2,0,0),
+                        xreg = GGR$unrate,method = "CSS")
+
 
 ####Tables####
 library(e1071)  

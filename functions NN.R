@@ -8,6 +8,9 @@ rmltest=function(data){
   #Chapter 4. [Kundu] Discriminating between Normal and Laplace distribution
   #We are interested in testing Normality in 95 and 99 per cent interval 
   
+  #test 1:reject H0 if test statistic is below the critical value
+  #test 2:reject H0 if test statistic is above the critical value
+  
   #Author: Igor Kindop
   #March 2017
   z95=qnorm(0.95)
