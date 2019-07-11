@@ -2,11 +2,15 @@
 
 what I have to add
 
-1. Tests on Normality and fat-tailedness to indicate the direction of Non-Normality. Basially it is done.
+1. Tests on Normality and fat-tailedness to indicate the direction of Non-Normality. Basically it is done. DONE
 
-2. Bivariate estimation of the Phillips curve.
+2. Add core CPI and PPI inflation and may be wage inflation?
 
-3. Structural decomposition of the Bivariate Phillips curve with exclusion restrictions
+3. Bivariate estimation of the Phillips curve.
+
+4. Structural decomposition of the Bivariate Phillips curve with exclusion restrictions
+
+
 
 #########Description###########
 
