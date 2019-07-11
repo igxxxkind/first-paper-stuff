@@ -77,13 +77,24 @@ unrate.ts = ts(data = unrate,start = c(1953,1),end = c(2019,5),frequency = 12)
 cpi = data.frame(read_excel("CPIAUCSL_M1952-2019.xls",sheet = "data"))[,2]
 cpi_log = ts(data = diff(log(cpi)),start = c(1952,1),end = c(2019,4),frequency = 12)
 cpi.ts = window(x = cpi_log,start = c(1953,1),end = c(2019,4))
-cpi.gr = ts(data = cpi[-1]/cpi[-length(cpi)],start = c(1952,1),end = c(2019,4),frequency = 12)
-cpi.grate = window(x = cpi.gr,start = c(1953,1),end = c(2019,4))
+
+corecpi = data.frame(read_excel("CPILFESL_M1957-2019.xls",sheet = "data"))[,2]
+corecpi_log = ts(data = diff(log(corecpi)),start = c(1957,1),end = c(2019,5),frequency = 12)
+corecpi.ts = window(x = corecpi_log,start = c(1957,1),end = c(2019,4))
+
+ppi = data.frame(read_excel("PPIACO_M1913-2019.xls",sheet = "data"))[,2]
+ppi_log = ts(data = diff(log(ppi)),start = c(1913,1),end = c(2019,5),frequency = 12)
+ppi.ts = window(x = ppi_log,start = c(1953,1),end = c(2019,4))
 
 unratecycle.ts = ts(data = bkfiltered12$cycle,start = c(1953,1),end = c(2019,5),frequency = 12)
 #unratecycle2.ts = ts(data = bkfiltered11$cycle,start = c(1953,1),end = c(2019,5),frequency = 12)
 
+##Above we split the data in appropriate time range matching the unemploymen sequene if possible
+
 cpi1.ts = cpi.ts[!is.na(unratecycle.ts[-length(unratecycle.ts)])]
+#corecpi1.ts = corecpi.ts[!is.na(unratecycle.ts[-length(unratecycle.ts)])]
+ppi1.ts = ppi.ts[!is.na(unratecycle.ts[-length(unratecycle.ts)])]
+
 #cpi1.gr = cpi.grate[!is.na(unratecycle.ts[-length(unratecycle.ts)])]
 
 unratecycle.ts = unratecycle.ts[!is.na(unratecycle.ts)]
@@ -98,118 +109,242 @@ unratecycle.ts = ts(data = unratecycle.ts,start = c(1955,1),end = c(2017,5),freq
 #unratecycle2.ts = ts(data = unratecycle2.ts,start = c(1955,1),end = c(2017,5),frequency = 12)
 
 cpi2.ts = ts(data = cpi1.ts,start = c(1955,1),end = c(2017,5),frequency = 12)
+corecpi2.ts = window(x = corecpi.ts,start = c(1957,1),end = c(2017,5),frequency = 12)
+ppi2.ts = ts(data = ppi1.ts,start = c(1955,1),end = c(2017,5),frequency = 12)
+
 #cpi2.gr = ts(data = cpi1.gr,start = c(1955,1),end = c(2017,5),frequency = 12)
 
 
 ###Divide the data into three major periods
 ##Great Inflation: 1960 - 1983
-GGI = list()
-GGI$cpi = window(x = cpi2.ts, start = c(1965,1), end = c(1982,12))
-#GGI$cpi= window(x = cpi2.ts, start = c(1965,1), end = c(1982,12))
-#GGI$cpi = GGI$cpi2
+GI = list()
+GI$cpi = window(x = cpi2.ts, start = c(1965,1), end = c(1982,12))
+GI$corecpi= window(x = corecpi2.ts, start = c(1965,1), end = c(1982,12))
+GI$ppi = window(x = ppi2.ts, start = c(1965,1), end = c(1982,12))
 
-#GGI$unrate1 = window(x = unratecycle.ts, start = c(1960,1), end = c(1982,12))
-GGI$unrate = window(x = unratecycle.ts, start = c(1965,1), end = c(1982,12))
+#GI$cpi = GI$cpi2
 
-#GGI$unrate = GGI$unrate3
-GGI$n = length(GGI$cpi)
-GGI$stdcpi = (GGI$cpi - mean(GGI$cpi))/sqrt(var(GGI$cpi))
+#GI$unrate1 = window(x = unratecycle.ts, start = c(1960,1), end = c(1982,12))
+GI$unrate = window(x = unratecycle.ts, start = c(1965,1), end = c(1982,12))
 
-
-#check = modelfit2(GGI$cpi,l = 20)
-GGI$lagselect = modelfit2(GGI$cpi,l = 20,exo = GGI$unrate)
-
-GGI$unitroot0 = summary(ur.df(GGI$cpi,type = "none"))
-GGI$unitrootD = summary(ur.df(GGI$cpi,type = "drift"))
-GGI$unitrootT = summary(ur.df(GGI$cpi,type = "trend"))
-
-GGI$causalmodel = arima(x = GGI$cpi,order = c(2,0,0),
-                        xreg = GGI$unrate,method = "CSS")
+#GI$unrate = GI$unrate3
+GI$n = length(GI$cpi)
+#GI$stdcpi = (GI$cpi - mean(GI$cpi))/sqrt(var(GI$cpi))
 
 
-GGI$ACtest1 = diagnostics(cpi = GGI$cpi, unrate = GGI$unrate,range = 20,order = 30)
-GGI$ACtest2 = diagnostics(cpi = GGI$cpi, unrate = GGI$unrate,range = 20,order = 10)
+#check = modelfit2(GI$cpi,l = 20)
+GI$lagselect = modelfit2(GI$cpi,l = 20,exo = GI$unrate)
+GI$core$lagselect = modelfit2(GI$corecpi,l = 20,exo = GI$unrate)
+GI$PPIN$lagselect = modelfit2(GI$ppi,l = 20,exo = GI$unrate)
 
-ts.plot(GGI$ACtest1$JBp.value)
+
+GI$unitroot0 = summary(ur.df(GI$cpi,type = "none"))
+GI$unitrootD = summary(ur.df(GI$cpi,type = "drift"))
+GI$unitrootT = summary(ur.df(GI$cpi,type = "trend"))
+
+GI$core$unitroot0 = summary(ur.df(GI$corecpi,type = "none"))
+GI$core$unitrootD = summary(ur.df(GI$corecpi,type = "drift"))
+GI$core$unitrootT = summary(ur.df(GI$corecpi,type = "trend"))
+
+GI$PPIN$unitroot0 = summary(ur.df(GI$ppi,type = "none"))
+GI$PPIN$unitrootD = summary(ur.df(GI$ppi,type = "drift"))
+GI$PPIN$unitrootT = summary(ur.df(GI$ppi,type = "trend"))
+
+
+GI$causalmodel = arima(x = GI$cpi,order = c(2,0,0),
+                        xreg = GI$unrate,method = "CSS")
+GI$core$causalmodel = arima(x = GI$corecpi,order = c(2,0,0),
+                        xreg = GI$unrate,method = "CSS")
+GI$PPIN$causalmodel = arima(x = GI$ppi,order = c(1,0,0),
+                             xreg = GI$unrate,method = "CSS")
+
+GI$ACtest1 = diagnostics(cpi = GI$cpi, unrate = GI$unrate,range = 20,order = 30)
+GI$ACtest2 = diagnostics(cpi = GI$cpi, unrate = GI$unrate,range = 20,order = 10)
+
+GI$core$ACtest1 = diagnostics(cpi = GI$corecpi, unrate = GI$unrate,range = 20,order = 30)
+GI$core$ACtest2 = diagnostics(cpi = GI$corecpi, unrate = GI$unrate,range = 20,order = 10)
+
+GI$PPIN$ACtest1 = diagnostics(cpi = GI$ppi, unrate = GI$unrate,range = 20,order = 30)
+GI$PPIN$ACtest2 = diagnostics(cpi = GI$ppi, unrate = GI$unrate,range = 20,order = 10)
+GI$PPIN$ACtest3 = diagnostics(cpi = GI$ppi, unrate = GI$unrate,range = 20,order = 20)
+
+
+ts.plot(GI$ACtest1$BGp.value)
+which(GI$ACtest2$BGp.value<0.05)#9 lags for both orders
+
+ts.plot(GI$core$ACtest1$BGp.value)
+which(GI$core$ACtest2$BGp.value<0.05) #6 lags for order 10 or 9 lags for order 30
+
+ts.plot(GI$PPIN$ACtest3$BGp.value)
+which(GI$PPIN$ACtest3$BGp.value<0.05) #11 lags for order 10 and 3 lags for order 30
 
 ##Great Moderation: 1985 - 2007
-GGM = list()
-GGM$cpi = window(x = cpi2.ts, start = c(1983,1), end = c(2006,12))
-GGM$unrate = window(x = unratecycle.ts, start = c(1983,1), end = c(2006,12))
-#GGM$unrate2 = window(x = unratecycle2.ts, start = c(1983,1), end = c(2006,12))
-GGM$n = length(GGM$cpi)
-GGM$stdcpi = (GGM$cpi - mean(GGM$cpi))/sqrt(var(GGM$cpi))
+GM = list()
+GM$cpi = window(x = cpi2.ts, start = c(1983,1), end = c(2006,12))
+GM$corecpi = window(x = corecpi2.ts, start = c(1983,1), end = c(2006,12))
+GM$ppi = window(x = ppi2.ts, start = c(1983,1), end = c(2006,12))
 
-GGM$lagselect = modelfit2(GGM$cpi,l = 20,exo = GGM$unrate)
-#GGM$lagselect2 = modelfit2(GGM$cpi,l = 20,exo = GGM$unrate2)
+GM$unrate = window(x = unratecycle.ts, start = c(1983,1), end = c(2006,12))
+#GM$unrate2 = window(x = unratecycle2.ts, start = c(1983,1), end = c(2006,12))
+GM$n = length(GM$cpi)
+#GM$stdcpi = (GM$cpi - mean(GM$cpi))/sqrt(var(GM$cpi))
 
-GGM$ACtest1 = diagnostics(cpi = GGM$cpi, unrate = GGM$unrate,range = 20,order = 30)
-GGM$ACtest2 = diagnostics(cpi = GGM$cpi, unrate = GGM$unrate,range = 20,order = 10)
+GM$lagselect = modelfit2(GM$cpi,l = 20,exo = GM$unrate)
+GM$core$lagselect = modelfit2(GM$corecpi,l = 20,exo = GM$unrate)
+GM$PPIN$lagselect = modelfit2(GM$ppi,l = 20,exo = GM$unrate)
 
-GGM$unitroot0 = summary(ur.df(GGM$cpi,type = "none"))
-GGM$unitrootD = summary(ur.df(GGM$cpi,type = "drift"))
-GGM$unitrootT = summary(ur.df(GGM$cpi,type = "trend"))
+#GM$lagselect2 = modelfit2(GM$cpi,l = 20,exo = GM$unrate2)
 
-GGM$causalmodel = arima(x = GGM$cpi,order = c(2,0,0),
-                        xreg = GGM$unrate,method = "CSS")
+GM$ACtest1 = diagnostics(cpi = GM$cpi, unrate = GM$unrate,range = 20,order = 30)
+GM$ACtest2 = diagnostics(cpi = GM$cpi, unrate = GM$unrate,range = 20,order = 10)
 
+GM$core$ACtest1 = diagnostics(cpi = GM$corecpi, unrate = GM$unrate,range = 20,order = 30)
+GM$core$ACtest2 = diagnostics(cpi = GM$corecpi, unrate = GM$unrate,range = 20,order = 10)
+
+GM$PPIN$ACtest1 = diagnostics(cpi = GM$ppi, unrate = GM$unrate,range = 20,order = 30)
+GM$PPIN$ACtest2 = diagnostics(cpi = GM$ppi, unrate = GM$unrate,range = 20,order = 10)
+
+GM$unitroot0 = summary(ur.df(GM$cpi,type = "none"))
+GM$unitrootD = summary(ur.df(GM$cpi,type = "drift"))
+GM$unitrootT = summary(ur.df(GM$cpi,type = "trend"))
+
+GM$core$unitroot0 = summary(ur.df(GM$corecpi,type = "none"))
+GM$core$unitrootD = summary(ur.df(GM$corecpi,type = "drift"))
+GM$core$unitrootT = summary(ur.df(GM$corecpi,type = "trend"))
+
+GM$PPIN$unitroot0 = summary(ur.df(GM$ppi,type = "none"))
+GM$PPIN$unitrootD = summary(ur.df(GM$ppi,type = "drift"))
+GM$PPIN$unitrootT = summary(ur.df(GM$ppi,type = "trend"))
+
+GM$causalmodel = arima(x = GM$cpi,order = c(2,0,0),
+                        xreg = GM$unrate,method = "CSS")
+
+GM$core$causalmodel = arima(x = GM$corecpi,order = c(6,0,0),
+                        xreg = GM$unrate,method = "CSS")
+
+GM$PPIN$causalmodel = arima(x = GM$ppi,order = c(1,0,0),
+                        xreg = GM$unrate,method = "CSS")
 
 ##Great Recession: 2007 - 2017
-GGR = list()
-GGR$cpi = window(x = cpi2.ts, start = c(2007,1), end = c(2017,5))
+GR = list()
+GR$cpi = window(x = cpi2.ts, start = c(2007,1), end = c(2017,5))
+GR$corecpi = window(x = corecpi2.ts, start = c(2007,1), end = c(2017,5))
+GR$ppi = window(x = ppi2.ts, start = c(2007,1), end = c(2017,5))
 
-GGR$unrate = window(x = unratecycle.ts, start = c(2007,1), end = c(2017,5))
-#GGR$unrate2 = window(x = unratecycle2.ts, start = c(2007,1), end = c(2017,5))
+GR$unrate = window(x = unratecycle.ts, start = c(2007,1), end = c(2017,5))
+#GR$unrate2 = window(x = unratecycle2.ts, start = c(2007,1), end = c(2017,5))
 
-GGR$n = length(GGR$cpi)
+GR$n = length(GR$cpi)
 
-GGR$stdcpi = (GGR$cpi - mean(GGR$cpi))/sqrt(var(GGR$cpi))
+#GR$stdcpi = (GR$cpi - mean(GR$cpi))/sqrt(var(GR$cpi))
 
-GGR$lagselect = modelfit2(GGR$cpi,l = 20,exo = GGR$unrate)
-#GGR$lagselect2 = modelfit2(GGR$cpi,l = 20,exo = GGR$unrate2)
+GR$lagselect = modelfit2(GR$cpi,l = 20,exo = GR$unrate)
+GR$core$lagselect = modelfit2(GR$corecpi,l = 20,exo = GR$unrate)
+GR$PPIN$lagselect = modelfit2(GR$ppi,l = 20,exo = GR$unrate)
 
-GGR$ACtest1 = diagnostics(cpi = GGR$cpi, unrate = GGR$unrate,range = 20,order = 30)
-GGR$ACtest2 = diagnostics(cpi = GGR$cpi, unrate = GGR$unrate,range = 20,order = 10)
 
-GGR$unitroot0 = summary(ur.df(GGR$cpi,type = "none"))
-GGR$unitrootD = summary(ur.df(GGR$cpi,type = "drift"))
-GGR$unitrootT = summary(ur.df(GGR$cpi,type = "trend"))
+#GR$lagselect2 = modelfit2(GR$cpi,l = 20,exo = GR$unrate2)
 
-GGR$causalmodel = arima(x = GGR$cpi,order = c(2,0,0),
-                        xreg = GGR$unrate,method = "CSS")
+GR$ACtest1 = diagnostics(cpi = GR$cpi, unrate = GR$unrate,range = 20,order = 30)
+GR$ACtest2 = diagnostics(cpi = GR$cpi, unrate = GR$unrate,range = 20,order = 10)
 
+GR$core$ACtest1 = diagnostics(cpi = GR$corecpi, unrate = GR$unrate,range = 20,order = 30)
+GR$core$ACtest2 = diagnostics(cpi = GR$corecpi, unrate = GR$unrate,range = 20,order = 10)
+
+GR$PPIN$ACtest1 = diagnostics(cpi = GR$ppi, unrate = GR$unrate,range = 20,order = 30)
+GR$PPIN$ACtest2 = diagnostics(cpi = GR$ppi, unrate = GR$unrate,range = 20,order = 10)
+
+GR$unitroot0 = summary(ur.df(GR$cpi,type = "none"))
+GR$unitrootD = summary(ur.df(GR$cpi,type = "drift"))
+GR$unitrootT = summary(ur.df(GR$cpi,type = "trend"))
+
+GR$core$unitroot0 = summary(ur.df(GR$corecpi,type = "none"))
+GR$core$unitrootD = summary(ur.df(GR$corecpi,type = "drift"))
+GR$core$unitrootT = summary(ur.df(GR$corecpi,type = "trend"))
+
+GR$PPIN$unitroot0 = summary(ur.df(GR$ppi,type = "none"))
+GR$PPIN$unitrootD = summary(ur.df(GR$ppi,type = "drift"))
+GR$PPIN$unitrootT = summary(ur.df(GR$ppi,type = "trend"))
+
+GR$causalmodel = arima(x = GR$cpi,order = c(2,0,0),
+                        xreg = GR$unrate,method = "CSS")
+
+GR$core$causalmodel = arima(x = GR$corecpi,order = c(2,0,0),
+                        xreg = GR$unrate,method = "CSS")
+
+GR$PPIN$causalmodel = arima(x = GR$ppi,order = c(3,0,0),
+                        xreg = GR$unrate,method = "CSS")
 
 ####Tables####
 library(e1071)  
 tables = list()
-#Summary statistics table 
+#Summary statistics table CPI
 tables$sumstat = matrix(0,10,3)
-tables$sumstat[,1] = c(mean(GGI$cpi),median(GGI$cpi),var(GGI$cpi),skewness(GGI$cpi),
-                       kurtosis(GGI$cpi),min(GGI$cpi),max(GGI$cpi),
-                       GGI$unitroot0@teststat,GGI$unitrootD@teststat[1],
-                       GGI$unitrootT@teststat[1])
-tables$sumstat[,2] = c(mean(GGM$cpi),median(GGM$cpi),var(GGM$cpi),skewness(GGM$cpi),
-                       kurtosis(GGM$cpi),min(GGM$cpi),max(GGM$cpi),
-                       GGM$unitroot0@teststat,GGM$unitrootD@teststat[1],
-                       GGM$unitrootT@teststat[1])
-tables$sumstat[,3] = c(mean(GGR$cpi),median(GGR$cpi),var(GGR$cpi),skewness(GGR$cpi),
-                       kurtosis(GGR$cpi),min(GGR$cpi),max(GGR$cpi),
-                       GGR$unitroot0@teststat,GGR$unitrootD@teststat[1],
-                       GGR$unitrootT@teststat[1])
+tables$sumstat[,1] = c(mean(GI$cpi),median(GI$cpi),var(GI$cpi),skewness(GI$cpi),
+                       kurtosis(GI$cpi),min(GI$cpi),max(GI$cpi),
+                       GI$unitroot0@teststat,GI$unitrootD@teststat[1],
+                       GI$unitrootT@teststat[1])
+tables$sumstat[,2] = c(mean(GM$cpi),median(GM$cpi),var(GM$cpi),skewness(GM$cpi),
+                       kurtosis(GM$cpi),min(GM$cpi),max(GM$cpi),
+                       GM$unitroot0@teststat,GM$unitrootD@teststat[1],
+                       GM$unitrootT@teststat[1])
+tables$sumstat[,3] = c(mean(GR$cpi),median(GR$cpi),var(GR$cpi),skewness(GR$cpi),
+                       kurtosis(GR$cpi),min(GR$cpi),max(GR$cpi),
+                       GR$unitroot0@teststat,GR$unitrootD@teststat[1],
+                       GR$unitrootT@teststat[1])
 rownames(tables$sumstat) = c("Mean","Median","Variance","Skewness","Kurtosis",
                              "Min", "Max", "ADF test (origin)", 
                              "ADF test (const)","ADF test (const+trend)")
+
+#Summary statistics table CPI core
+tables$core$sumstat = matrix(0,10,3)
+tables$core$sumstat[,1] = c(mean(GI$corecpi),median(GI$corecpi),var(GI$corecpi),skewness(GI$corecpi),
+                       kurtosis(GI$corecpi),min(GI$corecpi),max(GI$corecpi),
+                       GI$core$unitroot0@teststat,GI$core$unitrootD@teststat[1],
+                       GI$core$unitrootT@teststat[1])
+tables$core$sumstat[,2] = c(mean(GM$corecpi),median(GM$corecpi),var(GM$corecpi),skewness(GM$corecpi),
+                       kurtosis(GM$corecpi),min(GM$corecpi),max(GM$corecpi),
+                       GM$core$unitroot0@teststat,GM$core$unitrootD@teststat[1],
+                       GM$core$unitrootT@teststat[1])
+tables$core$sumstat[,3] = c(mean(GR$corecpi),median(GR$corecpi),var(GR$corecpi),skewness(GR$corecpi),
+                       kurtosis(GR$corecpi),min(GR$corecpi),max(GR$corecpi),
+                       GR$core$unitroot0@teststat,GR$core$unitrootD@teststat[1],
+                       GR$core$unitrootT@teststat[1])
+rownames(tables$core$sumstat) = c("Mean","Median","Variance","Skewness","Kurtosis",
+                             "Min", "Max", "ADF test (origin)", 
+                             "ADF test (const)","ADF test (const+trend)")
+
+#Summary statistics table PPI
+tables$PPIN$sumstat = matrix(0,10,3)
+tables$PPIN$sumstat[,1] = c(mean(GI$ppi),median(GI$ppi),var(GI$ppi),skewness(GI$ppi),
+                            kurtosis(GI$ppi),min(GI$ppi),max(GI$ppi),
+                            GI$PPIN$unitroot0@teststat,GI$PPIN$unitrootD@teststat[1],
+                            GI$PPIN$unitrootT@teststat[1])
+tables$PPIN$sumstat[,2] = c(mean(GM$ppi),median(GM$ppi),var(GM$ppi),skewness(GM$ppi),
+                            kurtosis(GM$ppi),min(GM$ppi),max(GM$ppi),
+                            GM$PPIN$unitroot0@teststat,GM$PPIN$unitrootD@teststat[1],
+                            GM$PPIN$unitrootT@teststat[1])
+tables$PPIN$sumstat[,3] = c(mean(GR$ppi),median(GR$ppi),var(GR$ppi),skewness(GR$ppi),
+                            kurtosis(GR$ppi),min(GR$ppi),max(GR$ppi),
+                            GR$PPIN$unitroot0@teststat,GR$PPIN$unitrootD@teststat[1],
+                            GR$PPIN$unitrootT@teststat[1])
+rownames(tables$PPIN$sumstat) = c("Mean","Median","Variance","Skewness","Kurtosis",
+                                  "Min", "Max", "ADF test (origin)", 
+                                  "ADF test (const)","ADF test (const+trend)")
+
+
+
 #Diagnostics test table
 tables$tests = matrix(0,18,21)
-tables$tests[1:6,] = rbind(GGI$ACtest1$LBtest,GGI$ACtest1$LBp.value,
-                           GGI$ACtest1$BGtest,GGI$ACtest1$BGp.value,
-                           GGI$ACtest1$JBstat,GGI$ACtest1$JBp.value)
-tables$tests[7:12,] = rbind(GGM$ACtest1$LBtest,GGM$ACtest1$LBp.value,
-                            GGM$ACtest1$BGtest,GGM$ACtest1$BGp.value,
-                            GGM$ACtest1$JBstat,GGM$ACtest1$JBp.value)
-tables$tests[13:18,] = rbind(GGR$ACtest1$LBtest,GGR$ACtest1$LBp.value,
-                             GGR$ACtest1$BGtest,GGR$ACtest1$BGp.value,
-                             GGR$ACtest1$JBstat,GGR$ACtest1$JBp.value)
+tables$tests[1:6,] = rbind(GI$ACtest1$LBtest,GI$ACtest1$LBp.value,
+                           GI$ACtest1$BGtest,GI$ACtest1$BGp.value,
+                           GI$ACtest1$JBstat,GI$ACtest1$JBp.value)
+tables$tests[7:12,] = rbind(GM$ACtest1$LBtest,GM$ACtest1$LBp.value,
+                            GM$ACtest1$BGtest,GM$ACtest1$BGp.value,
+                            GM$ACtest1$JBstat,GM$ACtest1$JBp.value)
+tables$tests[13:18,] = rbind(GR$ACtest1$LBtest,GR$ACtest1$LBp.value,
+                             GR$ACtest1$BGtest,GR$ACtest1$BGp.value,
+                             GR$ACtest1$JBstat,GR$ACtest1$JBp.value)
 tables$testrownames = c("Ljung-Box, ord=30", "L-B p.value",
                         "Breusch-Godfrey, ord=30", "B-G p.value",
                         "Jarque-Bera", "J-B p.value")
@@ -218,15 +353,15 @@ colnames(tables$tests) = c(1:21)
 
 #diagnostics tests table for order 10
 tables$tests2 = matrix(0,18,21)
-tables$tests2[1:6,] = rbind(GGI$ACtest2$LBtest,GGI$ACtest2$LBp.value,
-                            GGI$ACtest2$BGtest,GGI$ACtest2$BGp.value,
-                            GGI$ACtest2$JBstat,GGI$ACtest2$JBp.value)
-tables$tests2[7:12,] = rbind(GGM$ACtest2$LBtest,GGM$ACtest2$LBp.value,
-                             GGM$ACtest2$BGtest,GGM$ACtest2$BGp.value,
-                             GGM$ACtest2$JBstat,GGM$ACtest2$JBp.value)
-tables$tests2[13:18,] = rbind(GGR$ACtest2$LBtest,GGR$ACtest2$LBp.value,
-                              GGR$ACtest2$BGtest,GGR$ACtest2$BGp.value,
-                              GGR$ACtest2$JBstat,GGR$ACtest2$JBp.value)
+tables$tests2[1:6,] = rbind(GI$ACtest2$LBtest,GI$ACtest2$LBp.value,
+                            GI$ACtest2$BGtest,GI$ACtest2$BGp.value,
+                            GI$ACtest2$JBstat,GI$ACtest2$JBp.value)
+tables$tests2[7:12,] = rbind(GM$ACtest2$LBtest,GM$ACtest2$LBp.value,
+                             GM$ACtest2$BGtest,GM$ACtest2$BGp.value,
+                             GM$ACtest2$JBstat,GM$ACtest2$JBp.value)
+tables$tests2[13:18,] = rbind(GR$ACtest2$LBtest,GR$ACtest2$LBp.value,
+                              GR$ACtest2$BGtest,GR$ACtest2$BGp.value,
+                              GR$ACtest2$JBstat,GR$ACtest2$JBp.value)
 tables$testrownames = c("Ljung-Box, ord=10", "L-B p.value",
                         "Breusch-Godfrey, ord=10", "B-G p.value",
                         "Jarque-Bera", "J-B p.value")
@@ -235,9 +370,9 @@ colnames(tables$tests2) = c(1:21)
 
 #AICBIC table
 tables$aicbic = matrix(0,6,20)
-tables$aicbic[1:2,] = rbind(GGI$lagselect$aic,GGI$lagselect$bic)
-tables$aicbic[3:4,] = rbind(GGM$lagselect$aic,GGM$lagselect$bic)
-tables$aicbic[5:6,] = rbind(GGR$lagselect$aic,GGR$lagselect$bic)
+tables$aicbic[1:2,] = rbind(GI$lagselect$aic,GI$lagselect$bic)
+tables$aicbic[3:4,] = rbind(GM$lagselect$aic,GM$lagselect$bic)
+tables$aicbic[5:6,] = rbind(GR$lagselect$aic,GR$lagselect$bic)
 rownames(tables$aicbic) = rep(c("AIC","BIC"),3)
 
 
@@ -245,201 +380,214 @@ rownames(tables$aicbic) = rep(c("AIC","BIC"),3)
 ###Follow Lanne, Saikonen lag order selection
 
 ###Great Inflation Period###
-n = length(GGI$cpi)
+n = length(GI$cpi)
 nlag = 12
-GGI$lags = sapply(1:nlag, function(x) c(rep(NA, length.out = x), 
-                                        GGI$cpi[1:(n - x)]))
+GI$lags = sapply(1:nlag, function(x) c(rep(NA, length.out = x), 
+                                        GI$cpi[1:(n - x)]))
 #lags = lags[-c(1:nlag),]
 
-GGI$AIC = c()
-GGI$AIC2 = c()
+GI$AIC = c()
+GI$AIC2 = c()
 
 for(i in 1:nlag){
-  exo = GGI$unrate[-c(1:i)]
-  auxm = lm(GGI$cpi[-c(1:i)]~1+GGI$lags[-c(1:i),1:i]+exo)
-  GGI$AIC[i] = AIC(auxm)}
+  exo = GI$unrate[-c(1:i)]
+  auxm = lm(GI$cpi[-c(1:i)]~1+GI$lags[-c(1:i),1:i]+exo)
+  GI$AIC[i] = AIC(auxm)}
 
-# GGI$lags2 = sapply(1:nlag, function(x) c(rep(NA, length.out = x), 
-#                                          GGI$stdcpi[1:(n - x)]))
+# GI$lags2 = sapply(1:nlag, function(x) c(rep(NA, length.out = x), 
+#                                          GI$stdcpi[1:(n - x)]))
 # for(i in 1:nlag){
-#   exo = GGI$unrate2[-c(1:i)]
-#   auxm = lm(GGI$stdcpi[-c(1:i)]~1+GGI$lags2[-c(1:i),1:i]+exo)
-#   GGI$AIC2[i] = AIC(auxm)}
+#   exo = GI$unrate2[-c(1:i)]
+#   auxm = lm(GI$stdcpi[-c(1:i)]~1+GI$lags2[-c(1:i),1:i]+exo)
+#   GI$AIC2[i] = AIC(auxm)}
 
 #Lag selection process is a sequential procedure
 #therefore simple commands from MARX package are not appropriate
 
 #=>three possible candidates c(2,5,9)
 
-GGI$lagorder = c(2,5,9)
-exo2 = GGI$unrate[-c(1:GGI$lagorder[1])]
-GGI$cm2 = lm(GGI$cpi[-c(1:GGI$lagorder[1])]~1+
-               GGI$lags[-c(1:GGI$lagorder[1]),1:GGI$lagorder[1]]+exo2)
+GI$lagorder = c(2,5,9)
+exo2 = GI$unrate[-c(1:GI$lagorder[1])]
+GI$cm2 = lm(GI$cpi[-c(1:GI$lagorder[1])]~1+
+               GI$lags[-c(1:GI$lagorder[1]),1:GI$lagorder[1]]+exo2)
 
 
-exo5 = GGI$unrate[-c(1:GGI$lagorder[2])]
-GGI$cm5 = lm(GGI$cpi[-c(1:GGI$lagorder[2])]~1+
-               GGI$lags[-c(1:GGI$lagorder[2]),1:GGI$lagorder[2]]+exo5)
+exo5 = GI$unrate[-c(1:GI$lagorder[2])]
+GI$cm5 = lm(GI$cpi[-c(1:GI$lagorder[2])]~1+
+               GI$lags[-c(1:GI$lagorder[2]),1:GI$lagorder[2]]+exo5)
 
-exo9 = GGI$unrate[-c(1:GGI$lagorder[3])]
-GGI$cm9 = lm(GGI$cpi[-c(1:GGI$lagorder[3])]~1+
-               GGI$lags[-c(1:GGI$lagorder[3]),1:GGI$lagorder[3]]+exo9)
+exo9 = GI$unrate[-c(1:GI$lagorder[3])]
+GI$cm9 = lm(GI$cpi[-c(1:GI$lagorder[3])]~1+
+               GI$lags[-c(1:GI$lagorder[3]),1:GI$lagorder[3]]+exo9)
 
 
-GGI$cmstat2 = summary(GGI$cm2)
-GGI$cmstat5 = summary(GGI$cm5)
-GGI$cmstat9 = summary(GGI$cm9)
+GI$cmstat2 = summary(GI$cm2)
+GI$cmstat5 = summary(GI$cm5)
+GI$cmstat9 = summary(GI$cm9)
 
-GGI$MAR = list()
-GGI$MAR$causal2 = selection.lag.lead(y = GGI$cpi, x = GGI$unrate,p_pseudo = 2)
+GI$MAR = list()
+GI$MAR$causal2 = selection.lag.lead(y = GI$cpi, x = GI$unrate,p_pseudo = 2)
 
-GGI$MAR$causal5 = selection.lag.lead(y = GGI$cpi,x = GGI$unrate,p_pseudo = 5)
+GI$MAR$causal5 = selection.lag.lead(y = GI$cpi,x = GI$unrate,p_pseudo = 5)
 
-GGI$MAR$causal9 = selection.lag.lead(y = GGI$cpi,x = GGI$unrate,p_pseudo = 9)
+GI$MAR$causal9 = selection.lag.lead(y = GI$cpi,x = GI$unrate,p_pseudo = 9)
 
-GGI$MAR$model11 = mixed(y = GGI$cpi,x = GGI$unrate,p_C = 2,p_NC = 0)
-GGI$MAR$model12 = mixed(y = GGI$cpi,x = GGI$unrate,p_C = 1,p_NC = 1)
-GGI$MAR$model13 = mixed(y = GGI$cpi,x = GGI$unrate,p_C = 0,p_NC = 2)
+GI$MAR$model11 = mixed(y = GI$cpi,x = GI$unrate,p_C = 2,p_NC = 0)
+GI$MAR$model12 = mixed(y = GI$cpi,x = GI$unrate,p_C = 1,p_NC = 1)
+GI$MAR$model13 = mixed(y = GI$cpi,x = GI$unrate,p_C = 0,p_NC = 2)
 
-GGI$MAR$table = matrix(0,6,8)
-GGI$MAR$table[1,]= c(GGI$MAR$model11$coefficients[c(1,2,3,4,4,5,6,7)])
-GGI$MAR$table[2,]= c(GGI$MAR$model11$se[c(1,2,3,4,4,5,6,7)])
-GGI$MAR$table[3,]= c(GGI$MAR$model12$coefficients[c(1,2,2,3,3,4,5,6)])
-GGI$MAR$table[4,]= c(GGI$MAR$model12$se[c(1,2,2,3,3,4,5,6)])
-GGI$MAR$table[5,]= c(GGI$MAR$model13$coefficients[c(1,2,2,3,4,5,6,7)])
-GGI$MAR$table[6,]= c(GGI$MAR$model13$se[c(1,2,2,3,4,5,6,7)])
-rownames(GGI$MAR$table) = c("AR(2,0)","s.e.", "MAR(1,1)","s.e.", "AR(0,2)","s.e.")
-colnames(GGI$MAR$table) = c("int", "lag1", "lag2", "lead1", "lead2", "exo", "df", "scale" )
+GI$core$MAR$causal2 = selection.lag.lead(y = GI$corecpi, x = GI$unrate,p_pseudo = 6)
 
-GGI$MAR$model11$MSE = sum((GGI$cpi[-c(1,2)]-GGI$cm2$fitted.values)^2)
-GGI$MAR$model12$MSE = sum((GGI$cpi[-c(1,n)]-GGI$MAR$model12$fitted.values)^2)
-GGI$MAR$model13$MSE = sum((GGI$cpi[-c(n-1,n)]-GGI$MAR$model13$fitted.values)^2)
+
+#GM$core$MAR$causal2 = selection.lag.lead(y = GM$corecpi, x = GM$unrate,p_pseudo = 6)
+#GR$core$MAR$causal2 = selection.lag.lead(y = GR$corecpi, x = GR$unrate,p_pseudo = 2)
+
+
+
+GI$core$MAR$model11 = mixed(y = GI$corecpi,x = GI$unrate,p_C = 2,p_NC = 0)
+GI$core$MAR$model12 = mixed(y = GI$corecpi,x = GI$unrate,p_C = 1,p_NC = 1)
+GI$core$MAR$model13 = mixed(y = GI$corecpi,x = GI$unrate,p_C = 0,p_NC = 2)
+
+
+GI$MAR$table = matrix(0,6,8)
+GI$MAR$table[1,]= c(GI$MAR$model11$coefficients[c(1,2,3,4,4,5,6,7)])
+GI$MAR$table[2,]= c(GI$MAR$model11$se[c(1,2,3,4,4,5,6,7)])
+GI$MAR$table[3,]= c(GI$MAR$model12$coefficients[c(1,2,2,3,3,4,5,6)])
+GI$MAR$table[4,]= c(GI$MAR$model12$se[c(1,2,2,3,3,4,5,6)])
+GI$MAR$table[5,]= c(GI$MAR$model13$coefficients[c(1,2,2,3,4,5,6,7)])
+GI$MAR$table[6,]= c(GI$MAR$model13$se[c(1,2,2,3,4,5,6,7)])
+rownames(GI$MAR$table) = c("AR(2,0)","s.e.", "MAR(1,1)","s.e.", "AR(0,2)","s.e.")
+colnames(GI$MAR$table) = c("int", "lag1", "lag2", "lead1", "lead2", "exo", "df", "scale" )
+
+GI$MAR$model11$MSE = sum((GI$cpi[-c(1,2)]-GI$cm2$fitted.values)^2)
+GI$MAR$model12$MSE = sum((GI$cpi[-c(1,n)]-GI$MAR$model12$fitted.values)^2)
+GI$MAR$model13$MSE = sum((GI$cpi[-c(n-1,n)]-GI$MAR$model13$fitted.values)^2)
 
 nlead = 2
-GGI$leads = sapply(1:nlead, function(x) c(GGI$cpi[-c(1:x)],rep(NA, length.out = x)))
+GI$leads = sapply(1:nlead, function(x) c(GI$cpi[-c(1:x)],rep(NA, length.out = x)))
 
 
-Box.test(GGI$MAR$model11$residuals,lag = 12,type = "Ljung-Box")
-Box.test(GGI$MAR$model12$residuals,lag = 12,type = "Ljung-Box")
-Box.test(GGI$MAR$model13$residuals,lag = 12,type = "Ljung-Box")
+Box.test(GI$MAR$model11$residuals,lag = 12,type = "Ljung-Box")
+Box.test(GI$MAR$model12$residuals,lag = 12,type = "Ljung-Box")
+Box.test(GI$MAR$model13$residuals,lag = 12,type = "Ljung-Box")
 
-selection.lag.lead(GGI$cpi,x = GGI$unrate,p_pseudo = 2)
-GGI$MAR$select = selection.lag.lead(GGI$cpi,x = GGI$unrate,p_pseudo = 2)
+selection.lag.lead(GI$cpi,x = GI$unrate,p_pseudo = 2)
+GI$MAR$select = selection.lag.lead(GI$cpi,x = GI$unrate,p_pseudo = 2)
 
-# selection.lag.lead(GGI$stdcpi,x = GGI$unrate1,p_pseudo = 2)
-# selection.lag.lead(GGI$stdcpi,x = GGI$unrate2,p_pseudo = 10)
+# selection.lag.lead(GI$stdcpi,x = GI$unrate1,p_pseudo = 2)
+# selection.lag.lead(GI$stdcpi,x = GI$unrate2,p_pseudo = 10)
 
-GGI$MAR$table2 = matrix(0,3,2)
-GGI$MAR$table2[,1] = GGI$MAR$select$loglikelihood
-GGI$MAR$table2[,2] = c(Box.test(GGI$MAR$model11$residuals,lag = 12,type = "Ljung-Box")$p.value,
-                       Box.test(GGI$MAR$model12$residuals,lag = 12,type = "Ljung-Box")$p.value,
-                       Box.test(GGI$MAR$model13$residuals,lag = 12,type = "Ljung-Box")$p.value)
+GI$MAR$table2 = matrix(0,3,2)
+GI$MAR$table2[,1] = GI$MAR$select$loglikelihood
+GI$MAR$table2[,2] = c(Box.test(GI$MAR$model11$residuals,lag = 12,type = "Ljung-Box")$p.value,
+                       Box.test(GI$MAR$model12$residuals,lag = 12,type = "Ljung-Box")$p.value,
+                       Box.test(GI$MAR$model13$residuals,lag = 12,type = "Ljung-Box")$p.value)
 
 ###Great Moderation Period###
 
-n = length(GGM$cpi)
+n = length(GM$cpi)
 nlag = 12
-GGM$lags = sapply(1:nlag, function(x) c(rep(NA, length.out = x), 
-                                        GGM$cpi[1:(n - x)]))
+GM$lags = sapply(1:nlag, function(x) c(rep(NA, length.out = x), 
+                                        GM$cpi[1:(n - x)]))
 #lags = lags[-c(1:nlag),]
 
-GGM$AIC = c()
+GM$AIC = c()
 
 for(i in 1:nlag){
-  exo = GGM$unrate[-c(1:i)]
-  auxm = lm(GGM$cpi[-c(1:i)]~1+GGM$lags[-c(1:i),1:i]+exo)
-  GGM$AIC[i] = AIC(auxm)}
+  exo = GM$unrate[-c(1:i)]
+  auxm = lm(GM$cpi[-c(1:i)]~1+GM$lags[-c(1:i),1:i]+exo)
+  GM$AIC[i] = AIC(auxm)}
 
 
-GGM$MAR$model11 = mixed(y = GGM$cpi,x = GGM$unrate,p_C = 2,p_NC = 0)
-GGM$MAR$model12 = mixed(y = GGM$cpi,x = GGM$unrate,p_C = 1,p_NC = 1)
-GGM$MAR$model13 = mixed(y = GGM$cpi,x = GGM$unrate,p_C = 0,p_NC = 2)
+GM$MAR$model11 = mixed(y = GM$cpi,x = GM$unrate,p_C = 2,p_NC = 0)
+GM$MAR$model12 = mixed(y = GM$cpi,x = GM$unrate,p_C = 1,p_NC = 1)
+GM$MAR$model13 = mixed(y = GM$cpi,x = GM$unrate,p_C = 0,p_NC = 2)
 
-GGM$MAR$table = matrix(0,6,8)
-GGM$MAR$table[1,]= c(GGM$MAR$model11$coefficients[c(1,2,3,4,4,5,6,7)])
-GGM$MAR$table[2,]= c(GGM$MAR$model11$se[c(1,2,3,4,4,5,6,7)])
-GGM$MAR$table[3,]= c(GGM$MAR$model12$coefficients[c(1,2,2,3,3,4,5,6)])
-GGM$MAR$table[4,]= c(GGM$MAR$model12$se[c(1,2,2,3,3,4,5,6)])
-GGM$MAR$table[5,]= c(GGM$MAR$model13$coefficients[c(1,2,2,3,4,5,6,7)])
-GGM$MAR$table[6,]= c(GGM$MAR$model13$se[c(1,2,2,3,4,5,6,7)])
-rownames(GGM$MAR$table) = c("AR(2,0)","s.e.", "MAR(1,1)","s.e.", "AR(0,2)","s.e.")
-colnames(GGM$MAR$table) = c("int", "lag1", "lag2", "lead1", "lead2", "exo", "df", "scale" )
+GM$MAR$table = matrix(0,6,8)
+GM$MAR$table[1,]= c(GM$MAR$model11$coefficients[c(1,2,3,4,4,5,6,7)])
+GM$MAR$table[2,]= c(GM$MAR$model11$se[c(1,2,3,4,4,5,6,7)])
+GM$MAR$table[3,]= c(GM$MAR$model12$coefficients[c(1,2,2,3,3,4,5,6)])
+GM$MAR$table[4,]= c(GM$MAR$model12$se[c(1,2,2,3,3,4,5,6)])
+GM$MAR$table[5,]= c(GM$MAR$model13$coefficients[c(1,2,2,3,4,5,6,7)])
+GM$MAR$table[6,]= c(GM$MAR$model13$se[c(1,2,2,3,4,5,6,7)])
+rownames(GM$MAR$table) = c("AR(2,0)","s.e.", "MAR(1,1)","s.e.", "AR(0,2)","s.e.")
+colnames(GM$MAR$table) = c("int", "lag1", "lag2", "lead1", "lead2", "exo", "df", "scale" )
 
-GGM$MAR$select = selection.lag.lead(GGM$cpi,x = GGM$unrate,p_pseudo = 2)
-selection.lag.lead(GGM$cpi,x = GGM$unrate,p_pseudo = 12)
+GM$MAR$select = selection.lag.lead(GM$cpi,x = GM$unrate,p_pseudo = 2)
+selection.lag.lead(GM$cpi,x = GM$unrate,p_pseudo = 12)
 
-GGM$MAR$select5 = selection.lag.lead(GGM$cpi,x = GGM$unrate,p_pseudo = 5)
+GM$MAR$select5 = selection.lag.lead(GM$cpi,x = GM$unrate,p_pseudo = 5)
 
-GGM$MAR$model50 = mixed(y = GGM$cpi,x = GGM$unrate,p_C = 5,p_NC = 0)
-GGM$MAR$model41 = mixed(y = GGM$cpi,x = GGM$unrate,p_C = 4,p_NC = 1)
-GGM$MAR$model32 = mixed(y = GGM$cpi,x = GGM$unrate,p_C = 3,p_NC = 2)
-GGM$MAR$model23 = mixed(y = GGM$cpi,x = GGM$unrate,p_C = 2,p_NC = 3)
-GGM$MAR$model14 = mixed(y = GGM$cpi,x = GGM$unrate,p_C = 1,p_NC = 4)
-GGM$MAR$model05 = mixed(y = GGM$cpi,x = GGM$unrate,p_C = 0,p_NC = 5)
+GM$MAR$model50 = mixed(y = GM$cpi,x = GM$unrate,p_C = 5,p_NC = 0)
+GM$MAR$model41 = mixed(y = GM$cpi,x = GM$unrate,p_C = 4,p_NC = 1)
+GM$MAR$model32 = mixed(y = GM$cpi,x = GM$unrate,p_C = 3,p_NC = 2)
+GM$MAR$model23 = mixed(y = GM$cpi,x = GM$unrate,p_C = 2,p_NC = 3)
+GM$MAR$model14 = mixed(y = GM$cpi,x = GM$unrate,p_C = 1,p_NC = 4)
+GM$MAR$model05 = mixed(y = GM$cpi,x = GM$unrate,p_C = 0,p_NC = 5)
 
-c(Box.test(GGM$MAR$model50$residuals,lag = 12,type = "Ljung-Box")$p.value,
-  Box.test(GGM$MAR$model41$residuals,lag = 12,type = "Ljung-Box")$p.value,
-  Box.test(GGM$MAR$model32$residuals,lag = 12,type = "Ljung-Box")$p.value,
-  Box.test(GGM$MAR$model23$residuals,lag = 12,type = "Ljung-Box")$p.value,
-  Box.test(GGM$MAR$model14$residuals,lag = 12,type = "Ljung-Box")$p.value,
-  Box.test(GGM$MAR$model05$residuals,lag = 12,type = "Ljung-Box")$p.value)
+c(Box.test(GM$MAR$model50$residuals,lag = 12,type = "Ljung-Box")$p.value,
+  Box.test(GM$MAR$model41$residuals,lag = 12,type = "Ljung-Box")$p.value,
+  Box.test(GM$MAR$model32$residuals,lag = 12,type = "Ljung-Box")$p.value,
+  Box.test(GM$MAR$model23$residuals,lag = 12,type = "Ljung-Box")$p.value,
+  Box.test(GM$MAR$model14$residuals,lag = 12,type = "Ljung-Box")$p.value,
+  Box.test(GM$MAR$model05$residuals,lag = 12,type = "Ljung-Box")$p.value)
 
 
-GGM$MAR$table2 = matrix(0,3,2)
-GGM$MAR$table2[,1] = GGM$MAR$select$loglikelihood
-GGM$MAR$table2[,2] = c(Box.test(GGM$MAR$model11$residuals,lag = 12,type = "Ljung-Box")$p.value,
-                       Box.test(GGM$MAR$model12$residuals,lag = 12,type = "Ljung-Box")$p.value,
-                       Box.test(GGM$MAR$model13$residuals,lag = 12,type = "Ljung-Box")$p.value)
+GM$MAR$table2 = matrix(0,3,2)
+GM$MAR$table2[,1] = GM$MAR$select$loglikelihood
+GM$MAR$table2[,2] = c(Box.test(GM$MAR$model11$residuals,lag = 12,type = "Ljung-Box")$p.value,
+                       Box.test(GM$MAR$model12$residuals,lag = 12,type = "Ljung-Box")$p.value,
+                       Box.test(GM$MAR$model13$residuals,lag = 12,type = "Ljung-Box")$p.value)
 
-GGM$MAR$table3 = matrix(0,6,2)
-GGM$MAR$table3[,1] = GGM$MAR$select5$loglikelihood
-GGM$MAR$table3[,2] = c(Box.test(GGM$MAR$model50$residuals,lag = 12,type = "Ljung-Box")$p.value,
-                       Box.test(GGM$MAR$model41$residuals,lag = 12,type = "Ljung-Box")$p.value,
-                       Box.test(GGM$MAR$model32$residuals,lag = 12,type = "Ljung-Box")$p.value,
-                       Box.test(GGM$MAR$model23$residuals,lag = 12,type = "Ljung-Box")$p.value,
-                       Box.test(GGM$MAR$model14$residuals,lag = 12,type = "Ljung-Box")$p.value,
-                       Box.test(GGM$MAR$model05$residuals,lag = 12,type = "Ljung-Box")$p.value)
+GM$MAR$table3 = matrix(0,6,2)
+GM$MAR$table3[,1] = GM$MAR$select5$loglikelihood
+GM$MAR$table3[,2] = c(Box.test(GM$MAR$model50$residuals,lag = 12,type = "Ljung-Box")$p.value,
+                       Box.test(GM$MAR$model41$residuals,lag = 12,type = "Ljung-Box")$p.value,
+                       Box.test(GM$MAR$model32$residuals,lag = 12,type = "Ljung-Box")$p.value,
+                       Box.test(GM$MAR$model23$residuals,lag = 12,type = "Ljung-Box")$p.value,
+                       Box.test(GM$MAR$model14$residuals,lag = 12,type = "Ljung-Box")$p.value,
+                       Box.test(GM$MAR$model05$residuals,lag = 12,type = "Ljung-Box")$p.value)
 
 
 ###Great Recession Period###
 
-n = length(GGR$cpi)
+n = length(GR$cpi)
 nlag = 12
-GGR$lags = sapply(1:nlag, function(x) c(rep(NA, length.out = x), 
-                                        GGR$cpi[1:(n - x)]))
+GR$lags = sapply(1:nlag, function(x) c(rep(NA, length.out = x), 
+                                        GR$cpi[1:(n - x)]))
 #lags = lags[-c(1:nlag),]
 
-GGR$AIC = c()
+GR$AIC = c()
 
 for(i in 1:nlag){
-  exo = GGR$unrate[-c(1:i)]
-  auxm = lm(GGR$cpi[-c(1:i)]~1+GGR$lags[-c(1:i),1:i]+exo)
-  GGR$AIC[i] = AIC(auxm)}
+  exo = GR$unrate[-c(1:i)]
+  auxm = lm(GR$cpi[-c(1:i)]~1+GR$lags[-c(1:i),1:i]+exo)
+  GR$AIC[i] = AIC(auxm)}
 
-mixed(y = GGR$cpi,x = GGR$unrate,p_C = 0,p_NC = 1)
-mixed(y = GGR$cpi,x = GGR$unrate,p_C = 1,p_NC = 0)
+mixed(y = GR$cpi,x = GR$unrate,p_C = 0,p_NC = 1)
+mixed(y = GR$cpi,x = GR$unrate,p_C = 1,p_NC = 0)
 
-GGR$MAR$model11 = mixed(y = GGR$cpi,x = GGR$unrate,p_C = 2,p_NC = 0)
-GGR$MAR$model12 = mixed(y = GGR$cpi,x = GGR$unrate,p_C = 1,p_NC = 1)
-GGR$MAR$model13 = mixed(y = GGR$cpi,x = GGR$unrate,p_C = 0,p_NC = 2)
+GR$MAR$model11 = mixed(y = GR$cpi,x = GR$unrate,p_C = 2,p_NC = 0)
+GR$MAR$model12 = mixed(y = GR$cpi,x = GR$unrate,p_C = 1,p_NC = 1)
+GR$MAR$model13 = mixed(y = GR$cpi,x = GR$unrate,p_C = 0,p_NC = 2)
 
-GGR$MAR$table = matrix(0,6,8)
-GGR$MAR$table[1,]= c(GGR$MAR$model11$coefficients[c(1,2,3,4,4,5,6,7)])
-GGR$MAR$table[2,]= c(GGR$MAR$model11$se[c(1,2,3,4,4,5,6,7)])
-GGR$MAR$table[3,]= c(GGR$MAR$model12$coefficients[c(1,2,2,3,3,4,5,6)])
-GGR$MAR$table[4,]= c(GGR$MAR$model12$se[c(1,2,2,3,3,4,5,6)])
-GGR$MAR$table[5,]= c(GGR$MAR$model13$coefficients[c(1,2,2,3,4,5,6,7)])
-GGR$MAR$table[6,]= c(GGR$MAR$model13$se[c(1,2,2,3,4,5,6,7)])
-rownames(GGR$MAR$table) = c("AR(2,0)","s.e.", "MAR(1,1)","s.e.", "AR(0,2)","s.e.")
-colnames(GGR$MAR$table) = c("int", "lag1", "lag2", "lead1", "lead2", "exo", "df", "scale" )
+GR$MAR$table = matrix(0,6,8)
+GR$MAR$table[1,]= c(GR$MAR$model11$coefficients[c(1,2,3,4,4,5,6,7)])
+GR$MAR$table[2,]= c(GR$MAR$model11$se[c(1,2,3,4,4,5,6,7)])
+GR$MAR$table[3,]= c(GR$MAR$model12$coefficients[c(1,2,2,3,3,4,5,6)])
+GR$MAR$table[4,]= c(GR$MAR$model12$se[c(1,2,2,3,3,4,5,6)])
+GR$MAR$table[5,]= c(GR$MAR$model13$coefficients[c(1,2,2,3,4,5,6,7)])
+GR$MAR$table[6,]= c(GR$MAR$model13$se[c(1,2,2,3,4,5,6,7)])
+rownames(GR$MAR$table) = c("AR(2,0)","s.e.", "MAR(1,1)","s.e.", "AR(0,2)","s.e.")
+colnames(GR$MAR$table) = c("int", "lag1", "lag2", "lead1", "lead2", "exo", "df", "scale" )
 
 
-GGR$MAR$select = selection.lag.lead(GGR$cpi,x = GGR$unrate,p_pseudo = 2)
+GR$MAR$select = selection.lag.lead(GR$cpi,x = GR$unrate,p_pseudo = 2)
 
-GGR$MAR$table2 = matrix(0,3,2)
-GGR$MAR$table2[,1] = GGR$MAR$select$loglikelihood
-GGR$MAR$table2[,2] = c(Box.test(GGR$MAR$model11$residuals,lag = 12,type = "Ljung-Box")$p.value,
-                       Box.test(GGR$MAR$model12$residuals,lag = 12,type = "Ljung-Box")$p.value,
-                       Box.test(GGR$MAR$model13$residuals,lag = 12,type = "Ljung-Box")$p.value)
+GR$MAR$table2 = matrix(0,3,2)
+GR$MAR$table2[,1] = GR$MAR$select$loglikelihood
+GR$MAR$table2[,2] = c(Box.test(GR$MAR$model11$residuals,lag = 12,type = "Ljung-Box")$p.value,
+                       Box.test(GR$MAR$model12$residuals,lag = 12,type = "Ljung-Box")$p.value,
+                       Box.test(GR$MAR$model13$residuals,lag = 12,type = "Ljung-Box")$p.value)
 
 
