@@ -23,4 +23,11 @@ some tests.r - handwritten versions of the Breusch-Godfrey, RESET, and test on A
 
 experimental - some playground on noncausal estimation. i.e. automatic functions. is not finished
 
+############Problems##############
+
+12/07/2019
+- Residual autocorrelation present in the data, for order 12 for CPI in GM
+- ppi in GM period is not causal, which mildly contradicts my conclusion
+
+
 
