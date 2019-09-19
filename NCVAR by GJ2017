@@ -1,0 +1,82 @@
+#Noncausal VAR with GJ2017 model
+#Simulate the noncausal bivariate VAR model
+library(mvtnorm)
+
+A = matrix(c(.1,0,-1,1,.2,0.7,.1,1.4,0.4),3,)
+
+J1 = 0.3;J2 = 0.6; J3 = 2;
+J = diag(c(J1,J2, J3))
+
+phi = A%*%J%*%solve(A)
+##simulated errors
+n = 2000
+epst = t(rmvt(n,sigma = diag(3),df = 4))
+##simulated transformed errors
+epst_star = solve(A)%*%epst
+
+###simulate the process
+#causal component
+Y1_star = c(0)
+Y2_star =c(0)
+for(i in 2:n){
+Y1_star[i] = J1*Y1_star[i-1]+epst_star[1,i]  
+Y2_star[i] = J2*Y2_star[i-1]+epst_star[2,i]  
+  }
+#noncausal component
+Y3_star = matrix(0,1,n)
+for(i in (n-1):1){
+Y3_star[,i] = 1/J3 * Y3_star[,i+1] + 1/J3 * epst_star[3,i+1]  
+  }
+Y3_star = c(Y3_star)
+Y_star = rbind(Y1_star, Y2_star, Y3_star)
+
+Y_t = A%*%Y_star
+
+Y_t = Y_t[,-c(1:500,1501:n)]
+
+#Simulation is over
+ts.plot(Y_t[1,])
+lines(Y_t[2,], col = "red")
+lines(Y_t[3,], col = "blue")
+
+
+acf(t(Y_t),lag.max = 25)
+acf(t(Y_star),lag.max = 25)
+
+
+
+###Estimation of the NCVAR model by GJ2017
+data = Y_t
+param = c(diag(3))
+NCVAR_gj =function(param,data,h){
+  K = dim(data)[1]
+  n = dim(data)[2]
+  phi = matrix(param,K,)
+  
+  E = data[,-1] - phi%*%data[,-n]
+  exponent <- function(a, pow) (abs(a)^pow)*sign(a)
+  a1 = E
+  a2 = E^2
+  a3 = E^3
+  a4 = apply(E,1,exponent,pow = 1.5)
+  
+  auxfunc = cbind(t(a1),t(a2),t(a3),a4)
+  
+  acorr = acf(auxfunc,lag.max = h,plot = F)
+  
+  acorr = as.matrix(acorr[[1]][-1,,])^2
+
+  stat = sum(acorr)  
+  return(stat)}
+
+testmat = matrix(0,20,3)
+for(z in 1:20){
+test= optim(par = param,fn = NCVAR_gj,data = Y_t, h = z)
+phi_hat = matrix(test$par,3,3)
+testmat[z,] = eigen(phi_hat)$values
+print(z)
+}
+plot(abs(testmat))
+abs(testmat)
+# test= optim(par = param,fn = NCVAR_gj,data = Y_t, h = 10)
+# phi_hat = matrix(test$par,3,3)
